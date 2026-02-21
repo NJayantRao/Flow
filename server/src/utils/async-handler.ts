@@ -9,7 +9,7 @@ const AsyncHandler = (fn: any) => {
       console.log(error);
       return res
         .status(500)
-        .json(new ApiError(500, "❌❌ Internal Server Error..."));
+        .json(new ApiError(500, "Internal Server Error..."));
     }
   };
 };

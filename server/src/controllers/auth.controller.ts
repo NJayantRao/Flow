@@ -1,4 +1,8 @@
+import {prisma} from "../lib/prisma.js";
+import ApiError from "../utils/api-error.js";
+import ApiResponse from "../utils/api-response.js";
 import AsyncHandler from "../utils/async-handler.js";
+import {hashPassword} from "../utils/bcrypt.js";
 
 /**
  * @route POST /auth/register
@@ -16,7 +20,38 @@ import AsyncHandler from "../utils/async-handler.js";
 9. send response
 10. welcome mail
 */
-export const registerUser = AsyncHandler(async (req: any, res: any) => {});
+export const registerUser = AsyncHandler(async (req: any, res: any) => {
+  const {username, email, password} = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json(new ApiError(400, "All fields are required"));
+  }
+
+  const existingUser = await prisma.user.findUnique({
+    where: {email},
+  });
+
+  if (existingUser) {
+    return res.status(400).json(new ApiError(400, "User already exists"));
+  }
+
+  //hash password
+  const hashedPassword = await hashPassword(password);
+  const avatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${username}`;
+
+  const user = await prisma.user.create({
+    data: {
+      username,
+      email,
+      password: hashedPassword,
+      avatarUrl,
+    },
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, "User created successfully...", user));
+});
 
 /**
  * @route POST /auth/login

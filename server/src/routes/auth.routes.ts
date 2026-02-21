@@ -9,11 +9,12 @@ import {
   resetPassword,
   verifyEmail,
 } from "../controllers/auth.controller.js";
+import {userRegistrationValidation} from "../middlewares/validator.js";
 
 const router = express.Router();
 const authRouter = router;
 
-router.post("/register", registerUser);
+router.post("/register", userRegistrationValidation, registerUser);
 router.post("/login", loginUser);
 router.get("/verify-email", verifyEmail);
 router.post("/refresh-token", refreshAccessToken);
