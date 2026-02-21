@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import {authRouter} from "./routes/auth.routes.js";
+import {userRouter} from "./routes/user.routes.js";
 const app = express();
 
 app.use(
@@ -16,5 +18,8 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("Welcome to Flow...");
 });
+
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/user", userRouter);
 
 export default app;
