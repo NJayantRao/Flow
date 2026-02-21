@@ -1,6 +1,6 @@
 import ApiError from "./api-error.js";
 
-const AsyncHandler = async (fn) => {
+const AsyncHandler = (fn: any) => {
   return async function (req: any, res: any, next: any) {
     try {
       const result = await fn(req, res, next);
@@ -13,3 +13,5 @@ const AsyncHandler = async (fn) => {
     }
   };
 };
+
+export default AsyncHandler;
