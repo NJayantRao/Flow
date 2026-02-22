@@ -21,7 +21,7 @@ const authRouter = router;
 router.post("/register", userRegistrationValidation, registerUser);
 router.post("/login", userLoginValidation, loginUser);
 router.get("/verify-email", verifyEmail);
-router.post("/refresh-token", refreshAccessToken);
+router.get("/refresh-token", refreshAccessToken);
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPasswordValidation, resetPassword);

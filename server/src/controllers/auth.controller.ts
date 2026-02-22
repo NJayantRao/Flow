@@ -11,6 +11,7 @@ import {
   sendRegistrationEmail,
   sendResetPasswordMail,
 } from "../utils/userMail.js";
+import jwt, {type JwtPayload} from "jsonwebtoken";
 
 /**
  * @route POST /auth/register
@@ -190,33 +191,10 @@ export const logoutUser = AsyncHandler(async (req: any, res: any) => {
 });
 
 /**
- * @route POST /auth/refresh-token
- * @desc Refresh access token controller
- * @access public
- */
-export const refreshAccessToken = AsyncHandler(async (req: any, res: any) => {
-  /*
-1. get refresh token from cookies
-2. check for token expiry
-3. verify the refresh token matching with token in Redis
-4. call generateToken() for access token
-5. send token in cookies
-  */
-});
-
-/**
  * @route POST /auth/forgot-password
  * @desc forgot password controller
  * @access public
  */
-/*
-1. get email from req.body
-2. find user from db
-3. generate 6-digit otp
-4. store the otp & email in redis for 10 min
-5. send otp in email
-6. send response
-  */
 export const forgotPassword = AsyncHandler(async (req: any, res: any) => {
   const {email} = req.body;
   const user = await prisma.user.findUnique({where: {email}});
@@ -238,14 +216,6 @@ export const forgotPassword = AsyncHandler(async (req: any, res: any) => {
  * @route POST /auth/reset-password
  * @desc reset password controller
  * @access public
- */
-/*
-1. get data from req.body
-2. get otp from redis 
-3. verify otp
-4. update password in db
-5. delete otp
-6. send response
  */
 export const resetPassword = AsyncHandler(async (req: any, res: any) => {
   const {email, otp, newPassword} = req.body;
@@ -275,3 +245,63 @@ export const resetPassword = AsyncHandler(async (req: any, res: any) => {
     .status(200)
     .json(new ApiResponse(200, "Password reset successfully"));
 });
+
+/**
+ * @route POST /auth/refresh-token
+ * @desc Refresh access token controller
+ * @access public
+ */
+export const refreshAccessToken = async (req: any, res: any) => {
+  try {
+    const authorization = req?.headers?.authorization;
+    const refreshToken =
+      req?.cookies?.refreshToken || authorization?.split(" ")[1];
+
+    if (!refreshToken) {
+      return res.status(401).json(new ApiError(401, "Unauthorized request"));
+    }
+    interface IPayload {
+      id: string;
+      email: string;
+    }
+    const decoded = jwt.verify(
+      refreshToken,
+      ENV.REFRESH_TOKEN_SECRET
+    ) as IPayload;
+    const {id, email} = decoded;
+
+    const storedRefreshToken = await client.get(`refresh-token:${id}`);
+
+    if (!storedRefreshToken || storedRefreshToken !== refreshToken) {
+      return res
+        .status(401)
+        .json(new ApiError(401, "Session expired. Please login again."));
+    }
+
+    const accessToken = jwt.sign({id, email}, ENV.ACCESS_TOKEN_SECRET, {
+      expiresIn: "15m",
+    });
+    const options = {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: ENV.NODE_ENV === "PRODUCTION",
+    };
+
+    res.cookie("accessToken", accessToken, options);
+
+    return res.status(200).json(
+      new ApiResponse(200, "Access token refreshed successfully", {
+        accessToken,
+      })
+    );
+  } catch (error: any) {
+    console.log(error);
+
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(401)
+        .json(new ApiError(401, "Session expired, Please login again"));
+    }
+    return res.status(401).json(new ApiError(401, "Invalid Token"));
+  }
+};
