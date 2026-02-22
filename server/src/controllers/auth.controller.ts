@@ -1,8 +1,13 @@
+import {ENV} from "../lib/env.js";
 import {prisma} from "../lib/prisma.js";
+import {client} from "../lib/redis.js";
+import {generateAccessToken} from "../middlewares/jwt.js";
 import ApiError from "../utils/api-error.js";
 import ApiResponse from "../utils/api-response.js";
 import AsyncHandler from "../utils/async-handler.js";
 import {hashPassword} from "../utils/bcrypt.js";
+import crypto from "crypto";
+import {sendRegistrationEmail} from "../utils/userMail.js";
 
 /**
  * @route POST /auth/register
@@ -35,6 +40,13 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
     return res.status(400).json(new ApiError(400, "User already exists"));
   }
 
+  const existingUsername = await prisma.user.findUnique({
+    where: {username},
+  });
+  if (existingUsername) {
+    return res.status(400).json(new ApiError(400, "Username already exists"));
+  }
+
   //hash password
   const hashedPassword = await hashPassword(password);
   const avatarUrl = `https://api.dicebear.com/9.x/bottts/svg?seed=${username}`;
@@ -48,9 +60,36 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
     },
   });
 
-  return res
-    .status(201)
-    .json(new ApiResponse(201, "User created successfully...", user));
+  //access & refresh token
+  const payload = {
+    id: user.id,
+    email: user.email,
+  };
+
+  const accessToken = generateAccessToken(payload);
+  const refreshToken = generateAccessToken(payload);
+
+  const options = {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: ENV.NODE_ENV === "PRODUCTION",
+  };
+
+  res.cookie("accessToken", accessToken, options);
+  res.cookie("refreshToken", refreshToken, options);
+
+  //generate verify email
+  const verificationToken = crypto.randomBytes(32).toString("hex");
+  await client.set(`verify-token:${user.id}`, verificationToken, {EX: 10 * 60});
+  const verificationLink = `${req.protocol}://${req.get("host")}/api/v1/verify-email?verify=${verificationToken}`;
+  await sendRegistrationEmail(user.email, user.username, verificationLink);
+
+  return res.status(201).json(
+    new ApiResponse(201, "User created successfully...", {
+      accessToken,
+      refreshToken,
+    })
+  );
 });
 
 /**

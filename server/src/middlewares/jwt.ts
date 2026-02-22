@@ -30,12 +30,12 @@ interface IPayload {
   email: string;
 }
 
-const generateAccessToken = async (userData: IPayload) => {
+const generateAccessToken = (userData: IPayload) => {
   const token = jwt.sign(userData, ENV.ACCESS_TOKEN_SECRET, {expiresIn: "15m"});
   return token;
 };
 
-const generateRefreshToken = async (userData: IPayload) => {
+const generateRefreshToken = (userData: IPayload) => {
   const token = jwt.sign(userData, ENV.REFRESH_TOKEN_SECRET, {expiresIn: "7d"});
   return token;
 };
