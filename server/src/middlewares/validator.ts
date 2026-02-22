@@ -45,3 +45,12 @@ export const resetPasswordValidation = [
     .withMessage("Password must be at least 8 characters long"),
   validateResult,
 ];
+
+export const usernameUpdateValidation = [
+  body("username")
+    .isString()
+    .withMessage("User name must be a string")
+    .isLength({min: 3})
+    .withMessage("User name must be at least 3 characters long"),
+  validateResult,
+];
