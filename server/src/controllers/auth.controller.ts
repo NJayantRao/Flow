@@ -13,7 +13,7 @@ import {
 } from "../utils/userMail.js";
 import jwt from "jsonwebtoken";
 import type {Request, Response, NextFunction} from "express";
-import {options} from "../utils/constants.js";
+import {baseOptions, refreshTokenOptions} from "../utils/constants.js";
 
 /**
  * @route POST /auth/register
@@ -64,8 +64,8 @@ export const registerUser = AsyncHandler(async (req: any, res: any) => {
   const accessToken = generateAccessToken(payload);
   const refreshToken = generateRefreshToken(payload);
 
-  res.cookie("accessToken", accessToken, options);
-  res.cookie("refreshToken", refreshToken, options);
+  res.cookie("accessToken", accessToken, baseOptions);
+  res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
   await client.set(`refresh-token:${user.id}`, refreshToken, {
     EX: 7 * 24 * 60 * 60,
@@ -116,8 +116,8 @@ export const loginUser = AsyncHandler(async (req: any, res: any) => {
   const accessToken = generateAccessToken(payload);
   const refreshToken = generateRefreshToken(payload);
 
-  res.cookie("accessToken", accessToken, options);
-  res.cookie("refreshToken", refreshToken, options);
+  res.cookie("accessToken", accessToken, baseOptions);
+  res.cookie("refreshToken", refreshToken, refreshTokenOptions);
 
   await client.set(`refresh-token:${user.id}`, refreshToken, {
     EX: 7 * 24 * 60 * 60,
@@ -165,8 +165,8 @@ export const verifyEmail = AsyncHandler(async (req: any, res: any) => {
 export const logoutUser = AsyncHandler(async (req: any, res: any) => {
   const userId = req.user.id;
 
-  res.clearCookie("accessToken", options);
-  res.clearCookie("refreshToken", options);
+  res.clearCookie("accessToken", baseOptions);
+  res.clearCookie("refreshToken", refreshTokenOptions);
 
   await client.del(`refresh-token:${userId}`);
 
@@ -267,7 +267,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       expiresIn: "15m",
     });
 
-    res.cookie("accessToken", accessToken, options);
+    res.cookie("accessToken", accessToken, baseOptions);
 
     return res.status(200).json(
       new ApiResponse(200, "Access token refreshed successfully", {
@@ -275,7 +275,7 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
       })
     );
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
 
     if (error.name === "TokenExpiredError") {
       return res
