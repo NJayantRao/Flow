@@ -6,7 +6,7 @@ const authMiddleware = async (req: any, res: any, next: any) => {
   try {
     const authorization = req.headers.authorization;
 
-    const token = req?.cookies?.token || authorization?.split(" ")[1];
+    const token = req?.cookies?.accessToken || authorization?.split(" ")[1];
 
     if (!token) {
       return res.status(401).json(new ApiError(401, "Unauthorized request"));
@@ -30,12 +30,12 @@ interface IPayload {
   email: string;
 }
 
-const generateAccessToken = async (userData: IPayload) => {
+const generateAccessToken = (userData: IPayload) => {
   const token = jwt.sign(userData, ENV.ACCESS_TOKEN_SECRET, {expiresIn: "15m"});
   return token;
 };
 
-const generateRefreshToken = async (userData: IPayload) => {
+const generateRefreshToken = (userData: IPayload) => {
   const token = jwt.sign(userData, ENV.REFRESH_TOKEN_SECRET, {expiresIn: "7d"});
   return token;
 };
