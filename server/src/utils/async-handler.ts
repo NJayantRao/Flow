@@ -1,4 +1,4 @@
-import type {Request, Response, NextFunction} from "express";
+import type { Request, Response, NextFunction } from "express";
 import ApiError from "./api-error.js";
 
 const AsyncHandler = (fn: any) => {

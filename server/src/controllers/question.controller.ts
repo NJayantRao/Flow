@@ -1,5 +1,5 @@
-import {uploadFileToCloudinary} from "../lib/cloudinary.js";
-import {prisma} from "../lib/prisma.js";
+import { uploadFileToCloudinary } from "../lib/cloudinary.js";
+import { prisma } from "../lib/prisma.js";
 import ApiError from "../utils/api-error.js";
 import ApiResponse from "../utils/api-response.js";
 import AsyncHandler from "../utils/async-handler.js";
@@ -9,17 +9,10 @@ import AsyncHandler from "../utils/async-handler.js";
  * -@desc create question controller
  * -@access private
  */
-/**
- * 1. get title from req.body
- * 2. get image url if any from req.file
- * 3. validate title,content and image
- * 4. create a new question record in db
- * 5. send response
- */
 export const createQuestion = AsyncHandler(async (req: any, res: any) => {
-  const {title, content} = req.body;
+  const { title, content } = req.body;
   const id = req.user.id;
-  let attachmentId = null;
+  let attachment = null;
 
   if (!title || !content) {
     return res
@@ -28,8 +21,8 @@ export const createQuestion = AsyncHandler(async (req: any, res: any) => {
   }
 
   const user = await prisma.user.findUnique({
-    where: {id},
-    select: {id: true, username: true, email: true},
+    where: { id },
+    select: { id: true, username: true, email: true },
   });
   if (!user) {
     return res.status(404).json(new ApiError(404, "User not found"));
@@ -39,7 +32,7 @@ export const createQuestion = AsyncHandler(async (req: any, res: any) => {
       req?.file.buffer,
       "Flow_Questions"
     );
-    attachmentId = cloudinaryResult.secure_url;
+    attachment = cloudinaryResult.secure_url;
   }
   const authorId = user.id;
 
@@ -48,7 +41,7 @@ export const createQuestion = AsyncHandler(async (req: any, res: any) => {
     data: {
       title,
       content,
-      attachmentId,
+      attachmentId: attachment,
       authorId,
     },
   });
@@ -62,10 +55,6 @@ export const createQuestion = AsyncHandler(async (req: any, res: any) => {
  * -@route GET /questions
  * -@desc get questions controller
  * -@access public
- */
-/**
- * 1. get questions from db
- * 2. send response in chunks
  */
 export const getQuestions = AsyncHandler(async (req: any, res: any) => {
   const page = parseInt(req.query.page) || 1;
@@ -93,15 +82,10 @@ export const getQuestions = AsyncHandler(async (req: any, res: any) => {
 /**
  * -@route GET /questions/:questionId
  * -@desc get question by id controller
- * -@access private
- */
-/**
- * 1. get questionId from params
- * 2. check question exists or not
- * 3. send response
+ * -@access public
  */
 export const getQuestionById = AsyncHandler(async (req: any, res: any) => {
-  const {questionId} = req.params;
+  const { questionId } = req.params;
 
   const question = await prisma.question.findUnique({
     where: {
@@ -131,20 +115,15 @@ export const getQuestionById = AsyncHandler(async (req: any, res: any) => {
  * -@desc update question by id controller
  * -@access private
  */
-/**
- * 1. get questionId from params
- * 2. check if question exists or not
- * 3. check whether user is author or not
- * 4. get updated data from req.body
- * 5. send responses
- */
 export const updateQuestionById = AsyncHandler(async (req: any, res: any) => {
   const data = req.body;
-  const {questionId} = req.params;
+  const { questionId } = req.params;
   const userId = req.user.id;
-  let attachmentId = null;
+  let attachment = null;
 
-  const question = await prisma.question.findUnique({where: {id: questionId}});
+  const question = await prisma.question.findUnique({
+    where: { id: questionId },
+  });
 
   if (!question) {
     return res.status(404).json(new ApiError(404, "Question not found"));
@@ -162,11 +141,11 @@ export const updateQuestionById = AsyncHandler(async (req: any, res: any) => {
       req?.file.buffer,
       "Flow_Questions"
     );
-    attachmentId = cloudinaryResult.secure_url;
-    data.attachmentId = attachmentId;
+    attachment = cloudinaryResult.secure_url;
+    data.attachmentId = attachment;
   }
   const updatedQuestion = await prisma.question.update({
-    where: {id: questionId},
+    where: { id: questionId },
     data: data,
   });
   return res
@@ -181,17 +160,12 @@ export const updateQuestionById = AsyncHandler(async (req: any, res: any) => {
  * -@desc delete question by id controller
  * -@access private
  */
-/**
- * 1. get questionId from params
- * 2. check if question exists or not
- * 3. check whether user is author or not
- * 4. delete question
- * 5. send responses
- */
 export const deleteQuestionById = AsyncHandler(async (req: any, res: any) => {
-  const {questionId} = req.params;
+  const { questionId } = req.params;
 
-  const question = await prisma.question.findUnique({where: {id: questionId}});
+  const question = await prisma.question.findUnique({
+    where: { id: questionId },
+  });
 
   if (!question) {
     return res.status(404).json(new ApiError(404, "Question not found"));
@@ -206,7 +180,7 @@ export const deleteQuestionById = AsyncHandler(async (req: any, res: any) => {
   }
 
   const deletedQuestion = await prisma.question.delete({
-    where: {id: questionId},
+    where: { id: questionId },
   });
 
   return res

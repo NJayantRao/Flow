@@ -1,4 +1,4 @@
-import {ENV} from "../lib/env.js";
+import { ENV } from "../lib/env.js";
 
 const baseOptions = {
   httpOnly: true,
@@ -13,4 +13,4 @@ const refreshTokenOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
-export {baseOptions, refreshTokenOptions};
+export { baseOptions, refreshTokenOptions };

@@ -1,8 +1,8 @@
-import {prisma} from "../lib/prisma.js";
-import {client} from "../lib/redis.js";
+import { prisma } from "../lib/prisma.js";
+import { client } from "../lib/redis.js";
 import ApiResponse from "../utils/api-response.js";
 import AsyncHandler from "../utils/async-handler.js";
-import {baseOptions, refreshTokenOptions} from "../utils/constants.js";
+import { baseOptions, refreshTokenOptions } from "../utils/constants.js";
 
 /**
  * @route GET /user/profile
@@ -13,7 +13,7 @@ export const getUserProfile = AsyncHandler(async (req: any, res: any) => {
   const id = req.user.id;
 
   const user = await prisma.user.findUnique({
-    where: {id},
+    where: { id },
     select: {
       username: true,
       email: true,
@@ -25,7 +25,7 @@ export const getUserProfile = AsyncHandler(async (req: any, res: any) => {
   });
 
   if (!user) {
-    return res.status(404).json({message: "User not found"});
+    return res.status(404).json({ message: "User not found" });
   }
   return res
     .status(200)
@@ -41,28 +41,28 @@ export const updateUserProfile = AsyncHandler(async (req: any, res: any) => {
   const userId = req.user.id;
 
   const existingUser = await prisma.user.findUnique({
-    where: {id: userId},
+    where: { id: userId },
     select: {
       username: true,
     },
   });
 
   if (!existingUser) {
-    return res.status(404).json({message: "User not found"});
+    return res.status(404).json({ message: "User not found" });
   }
-  const {username} = req.body;
+  const { username } = req.body;
 
   const users = await prisma.user.findFirst({
-    where: {username},
+    where: { username },
     select: {
       username: true,
     },
   });
   if (users) {
-    return res.status(400).json({message: "Username already exists"});
+    return res.status(400).json({ message: "Username already exists" });
   }
 
-  await prisma.user.update({where: {id: userId}, data: {username}});
+  await prisma.user.update({ where: { id: userId }, data: { username } });
 
   return res
     .status(200)
@@ -77,7 +77,7 @@ export const updateUserProfile = AsyncHandler(async (req: any, res: any) => {
 export const deleteUser = AsyncHandler(async (req: any, res: any) => {
   const userId = req.user.id;
 
-  await prisma.user.delete({where: {id: userId}});
+  await prisma.user.delete({ where: { id: userId } });
   await client.del(`refresh-token:${userId}`);
   res.clearCookie("accessToken", baseOptions);
   res.clearCookie("refreshToken", refreshTokenOptions);

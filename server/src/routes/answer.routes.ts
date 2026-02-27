@@ -1,11 +1,19 @@
-// import express from "express"
-// import { createAnswer } from "../controllers/answer.controller.js"
+import express from "express";
+import {
+  createAnswer,
+  deleteAnswerById,
+  getAnswers,
+  markAnswerAsAccepted,
+  updateAnswerById,
+} from "../controllers/answer.controller.js";
+import { authMiddleware } from "../middlewares/jwt.js";
 
-// const router= express.Router()
+const router = express.Router({ mergeParams: true });
 
-// router.post("/",createAnswer)
-// router.get("/")
-// router.put("/:answerId")
-// router.delete("/:answerId")
+router.post("/", authMiddleware, createAnswer);
+router.get("/", getAnswers);
+router.put("/:answerId", authMiddleware, updateAnswerById);
+router.patch("/:answerId/accepted", authMiddleware, markAnswerAsAccepted);
+router.delete("/:answerId", authMiddleware, deleteAnswerById);
 
-// export {router as answerRouter}
+export { router as answerRouter };

@@ -1,5 +1,5 @@
 import express from "express";
-import {authMiddleware} from "../middlewares/jwt.js";
+import { authMiddleware } from "../middlewares/jwt.js";
 import {
   createQuestion,
   deleteQuestionById,
@@ -7,19 +7,19 @@ import {
   getQuestions,
   updateQuestionById,
 } from "../controllers/question.controller.js";
-import {upload} from "../lib/multer.js";
+import { upload } from "../lib/multer.js";
 
 const router = express.Router();
 
-router.post("/", authMiddleware, upload.single("attachmentId"), createQuestion);
+router.post("/", authMiddleware, upload.single("attachment"), createQuestion);
 router.get("/", getQuestions);
 router.get("/:questionId", getQuestionById);
 router.put(
   "/:questionId",
   authMiddleware,
-  upload.single("attachmentId"),
+  upload.single("attachment"),
   updateQuestionById
 );
 router.delete("/:questionId", authMiddleware, deleteQuestionById);
 
-export {router as questionRouter};
+export { router as questionRouter };
