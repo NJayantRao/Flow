@@ -80,7 +80,7 @@ export const updateQuestionComments = AsyncHandler(
       return res
         .status(403)
         .json(
-          new ApiError(403, "You are not authorized to update this answer")
+          new ApiError(403, "You are not authorized to update this comment")
         );
     }
 
