@@ -9,15 +9,6 @@ import { reputationActions } from "../utils/constants.js";
  * -@desc upvote question controller
  * -@access private
  */
-/**
- * 1. check question exists in db
- * 2. create transaction
- * 3. increment vote by 1
- * 4. add record in vote db
- * 5. update reputation points in user db by +5
- * 6. create 2 ledgers for both votedto and votedby
- * 7. end transaction
- */
 export const upvoteQuestion = AsyncHandler(async (req: any, res: any) => {
   const userId = req.user.id;
   const { questionId } = req.params;
@@ -87,7 +78,7 @@ export const downvoteQuestion = AsyncHandler(async (req: any, res: any) => {
   if (userId === question.authorId) {
     return res
       .status(400)
-      .json(new ApiError(400, "You cannot upvote your own question"));
+      .json(new ApiError(400, "You cannot downvote your own question"));
   }
 
   const result = await prisma.$transaction(async (tx: any) => {
@@ -156,7 +147,7 @@ export const upvoteAnswer = AsyncHandler(async (req: any, res: any) => {
       data: { reputation: { increment: reputationActions.ANSWER_UPVOTED } },
     });
 
-    const updatedQuestion = await tx.answer.update({
+    const updatedAnswer = await tx.answer.update({
       where: { id: answerId },
       data: { voteCount: { increment: 1 } },
     });
@@ -165,7 +156,7 @@ export const upvoteAnswer = AsyncHandler(async (req: any, res: any) => {
     const reputationLedger = await tx.reputationLedger.create({
       data: {
         userId: answer.authorId,
-        action: "QUESTION_UPVOTED",
+        action: "ANSWER_UPVOTED",
         points: reputationActions.ANSWER_UPVOTED,
         answerId,
       },
@@ -197,7 +188,7 @@ export const downvoteAnswer = AsyncHandler(async (req: any, res: any) => {
   if (userId === answer.authorId) {
     return res
       .status(400)
-      .json(new ApiError(400, "You cannot upvote your own answer"));
+      .json(new ApiError(400, "You cannot downvote your own answer"));
   }
 
   const result = await prisma.$transaction(async (tx: any) => {

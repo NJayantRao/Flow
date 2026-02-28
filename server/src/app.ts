@@ -8,6 +8,7 @@ import { answerRouter } from "./routes/answer.routes.js";
 import { commentRouter } from "./routes/questionComment.routes.js";
 import { answerCommentsRouter } from "./routes/answerComments.routes.js";
 import { voteRouter } from "./routes/vote.routes.js";
+import { miscRouter } from "./routes/miscellaneous.routes.js";
 const app = express();
 
 app.use(
@@ -36,5 +37,5 @@ app.use(
   answerCommentsRouter
 );
 app.use("/api/v1/votes", voteRouter);
-
+app.use("/api/v1", miscRouter);
 export default app;
