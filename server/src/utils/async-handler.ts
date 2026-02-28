@@ -6,8 +6,13 @@ const AsyncHandler = (fn: any) => {
     try {
       const result = await fn(req, res, next);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
+      if (error.code === "P2002") {
+        return res
+          .status(400)
+          .json(new ApiError(400, "Unique constraint failed"));
+      }
       return res
         .status(500)
         .json(new ApiError(500, "Internal Server Error..."));

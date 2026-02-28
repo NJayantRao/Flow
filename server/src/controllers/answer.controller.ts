@@ -97,7 +97,7 @@ export const deleteAnswerById = AsyncHandler(async (req: any, res: any) => {
   if (userId !== answer.authorId) {
     return res
       .status(403)
-      .json(new ApiError(403, "You are not authorized to update this answer"));
+      .json(new ApiError(403, "You are not authorized to delete this answer"));
   }
 
   const deletedAnswer = await prisma.answer.delete({ where: { id: answerId } });

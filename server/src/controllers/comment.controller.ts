@@ -122,7 +122,7 @@ export const deleteQuestionComments = AsyncHandler(
       return res
         .status(403)
         .json(
-          new ApiError(403, "You are not authorized to update this Comment")
+          new ApiError(403, "You are not authorized to delete this Comment")
         );
     }
 
